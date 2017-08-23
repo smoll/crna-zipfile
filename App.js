@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button, StyleSheet, Text, View } from 'react-native'
 import { FileSystem } from 'expo'
+import JSZipUtils from 'jszip-utils'
 import JSZip from 'jszip'
 
 export default class App extends React.Component {
@@ -11,11 +12,21 @@ export default class App extends React.Component {
     const {uri} = await FileSystem.downloadAsync(remoteUrl, localUri)
     console.log('Finished downloading to ', uri)
 
-    const zipData = await FileSystem.readAsStringAsync(uri)
-    // console.log('zipData', zipData)
-    const zip = await JSZip.loadAsync(zipData)
-    zip.forEach((relativePath, file) => {
-      console.log('got file: ', relativePath)
+    const data = await new JSZip.external.Promise((resolve, reject) => {
+      JSZipUtils.getBinaryContent(uri, (err, data) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(data)
+        }
+      })
+    })
+
+    const zip = await JSZip.loadAsync(data)
+    zip.forEach(async (relativePath, file) => {
+      const content = await file.async('string')
+      console.log('filename: ', relativePath)
+      console.log('content: ', content)
     })
   }
 
