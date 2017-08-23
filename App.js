@@ -29,19 +29,24 @@ export default class App extends React.Component {
 
     const zip = await JSZip.loadAsync(data)
     zip.forEach(async (relativePath, file) => {
-      const content = await file.async('string')
+      console.log('file: ', file)
       console.log('relativePath: ', relativePath)
-      console.log('content: ', content)
 
-      const tmp = relativePath.split('.')
-      const basename = tmp[0]
-      const ext = tmp.slice(-1)[0]
-      const unzipped = `${FileSystem.documentDirectory}${basename}-unzipped.${ext}`
-      await FileSystem.writeAsStringAsync(unzipped, content)
-      console.log('unzipped: ', unzipped)
+      if (relativePath.endsWith('jpeg')) {
+        const base64 = await file.async('base64')
+        const b64uri = `data:image/jpeg;base64,${base64}`
+        console.log('Setting state.image to ', b64uri)
+        this.setState({image: b64uri})
+      } else {
+        const content = await file.async('binarystring')
+        console.log('content: ', content)
 
-      if (unzipped.endsWith('jpeg')) {
-        this.setState({image: unzipped})
+        const tmp = relativePath.split('.')
+        const basename = tmp[0]
+        const ext = tmp.slice(-1)[0]
+        const unzipped = `${FileSystem.documentDirectory}${basename}-unzipped.${ext}`
+        await FileSystem.writeAsStringAsync(unzipped, content)
+        console.log('unzipped: ', unzipped)
       }
     })
   }
@@ -69,8 +74,10 @@ export default class App extends React.Component {
 
     const zip = await JSZip.loadAsync(data)
     zip.forEach(async (relativePath, file) => {
-      const content = await file.async('string')
+      console.log('file: ', file)
       console.log('relativePath: ', relativePath)
+
+      const content = await file.async('string')
       console.log('content: ', content)
 
       const unzipped = `${baseDir}/${relativePath}`
