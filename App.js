@@ -46,16 +46,40 @@ export default class App extends React.Component {
     })
   }
 
-  async downloadTextFile() {
-    const localUri = `${FileSystem.documentDirectory}1.txt`
-    console.log('text uri', localUri)
-    const remoteUrl = 'https://raw.githubusercontent.com/smoll/crna-zipfile/master/remote/files/1.txt'
+  async downloadTextOnlyFile() {
+    const localUri = `${FileSystem.documentDirectory}textonly.zip`
+    console.log('zip uri', localUri)
+    const remoteUrl = 'https://raw.githubusercontent.com/smoll/crna-zipfile/master/remote/textonly.zip'
     const {uri} = await FileSystem.downloadAsync(remoteUrl, localUri)
     console.log('Finished downloading to ', uri)
 
-    const data = await FileSystem.readAsStringAsync(uri)
-    console.log('typeof: ', typeof data)
-    console.log('text data: ', data)
+    const data = await new JSZip.external.Promise((resolve, reject) => {
+      JSZipUtils.getBinaryContent(uri, (err, data) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(data)
+        }
+      })
+    })
+
+    const baseDir = `${FileSystem.documentDirectory}text-only`
+    await FileSystem.makeDirectoryAsync(baseDir, {intermediates: true})
+    console.log('Created base dir ', baseDir)
+
+    const zip = await JSZip.loadAsync(data)
+    zip.forEach(async (relativePath, file) => {
+      const content = await file.async('string')
+      console.log('relativePath: ', relativePath)
+      console.log('content: ', content)
+
+      const unzipped = `${baseDir}/${relativePath}`
+      await FileSystem.writeAsStringAsync(unzipped, content)
+      console.log('unzipped: ', unzipped)
+    })
+
+    const allFiles = await FileSystem.readDirectoryAsync(baseDir)
+    alert(`all files: ${allFiles}`)
   }
 
   render() {
@@ -68,13 +92,13 @@ export default class App extends React.Component {
 
         <Button
           onPress={this.downloadZipFile.bind(this)}
-          title="Download Zip"
+          title="Image + Text Zip"
           color="blue"
         />
 
         <Button
-          onPress={this.downloadTextFile}
-          title="Download Text File"
+          onPress={this.downloadTextOnlyFile}
+          title="Text Zip Only"
           color="purple"
         />
 
