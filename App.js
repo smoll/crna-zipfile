@@ -33,7 +33,10 @@ export default class App extends React.Component {
       console.log('relativePath: ', relativePath)
       console.log('content: ', content)
 
-      const unzipped = `${FileSystem.documentDirectory}${relativePath.split('.')[0]}-unzipped.txt`
+      const tmp = relativePath.split('.')
+      const basename = tmp[0]
+      const ext = tmp.slice(-1)[0]
+      const unzipped = `${FileSystem.documentDirectory}${basename}-unzipped.${ext}`
       await FileSystem.writeAsStringAsync(unzipped, content)
       console.log('unzipped: ', unzipped)
 
