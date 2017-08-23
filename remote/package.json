@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "zip-dir": "^1.0.2"
+  },
+  "scripts": {
+    "zip": "node zip.js"
+  }
+}
