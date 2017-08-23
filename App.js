@@ -1,14 +1,34 @@
 import React from 'react'
 import { Button, StyleSheet, Text, View } from 'react-native'
 import { FileSystem } from 'expo'
+import JSZip from 'jszip'
 
 export default class App extends React.Component {
-  async downloadFile() {
+  async downloadZipFile() {
     const localUri = `${FileSystem.documentDirectory}files.zip`
-    console.log('localUri', localUri)
+    console.log('zip uri', localUri)
     const remoteUrl = 'https://raw.githubusercontent.com/smoll/crna-zipfile/master/remote/files.zip'
-    const res = await FileSystem.downloadAsync(remoteUrl, localUri)
-    console.log('Finished downloading to ', res.uri)
+    const {uri} = await FileSystem.downloadAsync(remoteUrl, localUri)
+    console.log('Finished downloading to ', uri)
+
+    const zipData = await FileSystem.readAsStringAsync(uri)
+    // console.log('zipData', zipData)
+    const zip = await JSZip.loadAsync(zipData)
+    zip.forEach((relativePath, file) => {
+      console.log('got file: ', relativePath)
+    })
+  }
+
+  async downloadTextFile() {
+    const localUri = `${FileSystem.documentDirectory}1.txt`
+    console.log('text uri', localUri)
+    const remoteUrl = 'https://raw.githubusercontent.com/smoll/crna-zipfile/master/remote/files/1.txt'
+    const {uri} = await FileSystem.downloadAsync(remoteUrl, localUri)
+    console.log('Finished downloading to ', uri)
+
+    const data = await FileSystem.readAsStringAsync(uri)
+    console.log('typeof: ', typeof data)
+    console.log('text data: ', data)
   }
 
   render() {
@@ -19,9 +39,15 @@ export default class App extends React.Component {
         <Text>Shake your phone to open the developer menu.</Text>
 
         <Button
-          onPress={this.downloadFile}
+          onPress={this.downloadZipFile}
           title="Download Zip"
-          color="#841584"
+          color="blue"
+        />
+
+        <Button
+          onPress={this.downloadTextFile}
+          title="Download Text File"
+          color="purple"
         />
       </View>
     )
