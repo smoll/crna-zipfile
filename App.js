@@ -1,10 +1,15 @@
 import React from 'react'
-import { Button, StyleSheet, Text, View } from 'react-native'
+import { Button, Image, StyleSheet, Text, View } from 'react-native'
 import { FileSystem } from 'expo'
 import JSZipUtils from 'jszip-utils'
 import JSZip from 'jszip'
 
 export default class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {image: ''}
+  }
+
   async downloadZipFile() {
     const localUri = `${FileSystem.documentDirectory}files.zip`
     console.log('zip uri', localUri)
@@ -25,8 +30,16 @@ export default class App extends React.Component {
     const zip = await JSZip.loadAsync(data)
     zip.forEach(async (relativePath, file) => {
       const content = await file.async('string')
-      console.log('filename: ', relativePath)
+      console.log('relativePath: ', relativePath)
       console.log('content: ', content)
+
+      const unzipped = `${FileSystem.documentDirectory}${relativePath.split('.')[0]}-unzipped.txt`
+      await FileSystem.writeAsStringAsync(unzipped, content)
+      console.log('unzipped: ', unzipped)
+
+      if (unzipped.endsWith('jpeg')) {
+        this.setState({image: unzipped})
+      }
     })
   }
 
@@ -43,6 +56,7 @@ export default class App extends React.Component {
   }
 
   render() {
+    const {image} = this.state
     return (
       <View style={styles.container}>
         <Text>Open up App.js to start working on your app!</Text>
@@ -50,7 +64,7 @@ export default class App extends React.Component {
         <Text>Shake your phone to open the developer menu.</Text>
 
         <Button
-          onPress={this.downloadZipFile}
+          onPress={this.downloadZipFile.bind(this)}
           title="Download Zip"
           color="blue"
         />
@@ -60,6 +74,14 @@ export default class App extends React.Component {
           title="Download Text File"
           color="purple"
         />
+
+        {image ?
+          <Image
+            style={{width: 292, height: 172}}
+            source={{uri: image}}
+          /> :
+          null
+        }
       </View>
     )
   }
