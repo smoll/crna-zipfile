@@ -7,7 +7,7 @@ import JSZip from 'jszip'
 export default class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {image: ''}
+    this.state = {image: '', text: ''}
   }
 
   async downloadZipFile() {
@@ -47,6 +47,8 @@ export default class App extends React.Component {
         const unzipped = `${FileSystem.documentDirectory}${basename}-unzipped.${ext}`
         await FileSystem.writeAsStringAsync(unzipped, content)
         console.log('unzipped: ', unzipped)
+        const text = await FileSystem.readAsStringAsync(unzipped)
+        this.setState({text})
       }
     })
   }
@@ -90,7 +92,7 @@ export default class App extends React.Component {
   }
 
   render() {
-    const {image} = this.state
+    const {image, text} = this.state
     return (
       <View style={styles.container}>
         <Text>Open up App.js to start working on your app!</Text>
@@ -116,6 +118,7 @@ export default class App extends React.Component {
           /> :
           null
         }
+        <Text>{text}</Text>
       </View>
     )
   }
